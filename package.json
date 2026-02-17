@@ -7,7 +7,7 @@
   "scripts": {
     "start": "tsx src/main.ts",
     "build": "tsc",
-    "dev": "tsx watch src/main.ts"
+    "dev": "tsx src/main.ts --hot"
   },
   "keywords": [
     "agent",
@@ -16,11 +16,13 @@
     "cli",
     "anthropic"
   ],
-  "author": "",
+  "author": "simonrosengren",
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
     "dotenv": "^17.3.1",
+    "fs-extra": "^11.3.3",
+    "googleapis": "^171.4.0",
     "tiktoken": "^1.0.22"
   },
   "devDependencies": {

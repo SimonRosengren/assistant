@@ -138,6 +138,55 @@ export const deleteTaskTool: Tool = {
 }
 
 /**
+ * Tool for reading events from a Google Calendar.
+ * Use this when the user asks to see calendar events, check their schedule, or get information about upcoming appointments.
+ */
+export const readCalendarEventsTool: Tool = {
+  name: 'read_calendar_events',
+  description:
+    'Retrieves events from a Google Calendar. Use this when the user asks to see calendar events, ' +
+    'check their schedule, or get information about upcoming appointments. You can specify a calendar ' +
+    'ID (e.g., "primary" or an email address) and a time range. By default, it fetches events ' +
+    'from the "primary" calendar for the next 7 days.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      calendarId: {
+        type: 'string',
+        description: 'The ID of the calendar to retrieve events from. Defaults to "primary".',
+        default: 'primary',
+      },
+      timeMin: {
+        type: 'string',
+        format: 'date-time',
+        description: 'The start date/time (ISO 8601 format) for the events to retrieve. Defaults to now.',
+      },
+      timeMax: {
+        type: 'string',
+        format: 'date-time',
+        description: 'The end date/time (ISO 8601 format) for the events to retrieve. Defaults to 7 days from now.',
+      },
+      maxResults: {
+        type: 'number',
+        description: 'The maximum number of events to return. Defaults to 10.',
+        default: 10,
+      },
+      orderBy: {
+        type: 'string',
+        enum: ['startTime', 'updated'],
+        description: 'The order of the events returned. Defaults to "startTime".',
+        default: 'startTime',
+      },
+      singleEvents: {
+        type: 'boolean',
+        description: 'Whether to expand recurring events into individual instances. Defaults to true.',
+        default: true,
+      },
+    },
+  },
+}
+
+/**
  * Array of all available tools to pass to the Anthropic API
  */
 export const tools: Tool[] = [
@@ -146,4 +195,5 @@ export const tools: Tool[] = [
   updateTaskTool,
   completeTaskTool,
   deleteTaskTool,
-]
+  readCalendarEventsTool,
+];

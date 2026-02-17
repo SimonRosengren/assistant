@@ -329,6 +329,138 @@ async function handleDeleteTask(input: unknown): Promise<ToolExecutionResult<str
   }
 }
 
+import { google } from 'googleapis'
+import { getAuthenticatedGoogleClient } from '../auth/googleAuth.js'
+
+/**
+ * Type guard to check if value is a valid calendar order by option
+ */
+function isValidCalendarOrderBy(value: unknown): value is 'startTime' | 'updated' {
+  return value === 'startTime' || value === 'updated'
+}
+
+/**
+ * Handles the read_calendar_events tool
+ * Retrieves events from a Google Calendar
+ */
+async function handleReadCalendarEvents(input: unknown): Promise<ToolExecutionResult<any>> {
+  // Validate input is an object
+  if (!isObject(input)) {
+    return {
+      success: false,
+      error: 'Invalid input: expected an object with calendar event details',
+    }
+  }
+
+  const { calendarId = 'primary', timeMin, timeMax, maxResults = 10, orderBy = 'startTime', singleEvents = true } = input as any
+
+  // Validate calendarId
+  if (!isNonEmptyString(calendarId)) {
+    return {
+      success: false,
+      error: 'Invalid "calendarId" field. It must be a non-empty string.',
+    }
+  }
+
+  // Validate timeMin and timeMax if provided
+  if (timeMin !== undefined && typeof timeMin !== 'string') {
+    return {
+      success: false,
+      error: 'Invalid "timeMin" field. If provided, it must be a string (ISO 8601 format).',
+    }
+  }
+  if (timeMax !== undefined && typeof timeMax !== 'string') {
+    return {
+      success: false,
+      error: 'Invalid "timeMax" field. If provided, it must be a string (ISO 8601 format).',
+    }
+  }
+
+  // Validate maxResults
+  if (typeof maxResults !== 'number' || maxResults <= 0) {
+    return {
+      success: false,
+      error: 'Invalid "maxResults" field. It must be a positive number.',
+    }
+  }
+
+  // Validate orderBy
+  if (!isValidCalendarOrderBy(orderBy)) {
+    return {
+      success: false,
+      error: 'Invalid "orderBy" field. Must be one of: "startTime", "updated".',
+    }
+  }
+
+  // Validate singleEvents
+  if (typeof singleEvents !== 'boolean') {
+    return {
+      success: false,
+      error: 'Invalid "singleEvents" field. It must be a boolean.',
+    }
+  }
+
+  const authClientResult = await getAuthenticatedGoogleClient()
+  if (!authClientResult.success) {
+    return {
+      success: false,
+      error: `Authentication error: ${authClientResult.error.message}`,
+    }
+  }
+  const auth = authClientResult.data
+  const calendar = google.calendar({ version: 'v3', auth })
+
+  try {
+    // Set default time range if not provided
+    const now = new Date()
+    const sevenDaysFromNow = new Date()
+    sevenDaysFromNow.setDate(now.getDate() + 7)
+
+    const eventsResult = await calendar.events.list({
+      calendarId,
+      timeMin: timeMin || now.toISOString(),
+      timeMax: timeMax || sevenDaysFromNow.toISOString(),
+      maxResults,
+      singleEvents,
+      orderBy,
+    })
+
+    const events = eventsResult.data.items || []
+
+    return {
+      success: true,
+      data: events.map((event) => ({
+        id: event.id,
+        summary: event.summary,
+        location: event.location,
+        start: event.start?.dateTime || event.start?.date,
+        end: event.end?.dateTime || event.end?.date,
+        status: event.status,
+        htmlLink: event.htmlLink,
+      })),
+    }
+  } catch (error: any) {
+    console.error('Failed to retrieve calendar events:', error.message)
+    // Attempt to provide more specific error messages for common issues
+    if (error.code === 401 || error.code === 403) {
+      return {
+        success: false,
+        error: 'Permission denied or authentication expired. Please re-authenticate.',
+      }
+    }
+    if (error.code === 404) {
+      return {
+        success: false,
+        error: `Calendar with ID "${calendarId}" not found.`,
+      }
+    }
+    return {
+      success: false,
+      error: `Failed to retrieve calendar events: ${error.message || 'Unknown error'}`,
+    }
+  }
+}
+
 // ============================================================================
 // Tool Registry
 // ============================================================================
@@ -343,7 +475,9 @@ export const toolRegistry = {
   update_task: handleUpdateTask,
   complete_task: handleCompleteTask,
   delete_task: handleDeleteTask,
+  read_calendar_events: handleReadCalendarEvents,
 } as const
+
 
 /**
  * Type-safe tool name union

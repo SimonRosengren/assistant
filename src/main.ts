@@ -13,6 +13,7 @@ import {
   setCurrentConversationId,
   createNewConversation,
 } from './storage/conversations.js'
+import { authenticateGoogleOAuth, logoutGoogleOAuth } from './auth/googleAuth.js'
 
 // ============================================================================
 // Configuration
@@ -23,6 +24,8 @@ const MODEL = (process.env.MODEL || 'claude-3-5-haiku-20241022') as any
 const MAX_CONVERSATION_TOKENS = parseInt(
   process.env.MAX_CONVERSATION_TOKENS || '100000'
 )
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
 
 // Check for --verbose flag
 const VERBOSE = process.argv.includes('--verbose')
@@ -38,6 +41,14 @@ async function main() {
     console.error('   Please create a .env file with your API key')
     console.error('   See .env.example for reference')
     process.exit(1)
+  }
+
+  // Validate Google OAuth credentials if environment variables are set
+  if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+    console.log('✅ Google OAuth credentials found.')
+  } else {
+    console.warn('⚠️ Google OAuth credentials not found. Calendar tools will not function.')
+    console.warn('   Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.')
   }
   
   // Create agent
@@ -73,6 +84,8 @@ async function main() {
   console.log('   Type your message and press Enter')
   console.log('   Type "exit" or "quit" to end the conversation')
   console.log('   Type "new" to start a new conversation')
+  console.log('   Type "auth google" to authenticate with Google (for Calendar access)')
+  console.log('   Type "logout google" to clear Google authentication tokens')
   if (VERBOSE) {
     console.log('   🔍 Verbose mode: ON')
   }
@@ -107,6 +120,34 @@ async function main() {
         conversationId = newResult.data.id
         await setCurrentConversationId(conversationId)
         console.log(`\n✨ Started new conversation ${conversationId.substring(0, 8)}...\n`)
+        continue
+      }
+
+      if (trimmed === 'auth google') {
+        if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+          console.error('\n❌ Google OAuth credentials not set in .env file.')
+          console.error('   Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.')
+          console.error()
+          continue
+        }
+        console.log('\nInitiating Google OAuth authentication...')
+        const authResult = await authenticateGoogleOAuth()
+        if (authResult.success) {
+          console.log(`\n✅ ${authResult.data}\n`)
+        } else {
+          console.error(`\n❌ Authentication failed: ${authResult.error.message}\n`)
+        }
+        continue
+      }
+
+      if (trimmed === 'logout google') {
+        console.log('\nClearing Google OAuth tokens...')
+        const logoutResult = await logoutGoogleOAuth()
+        if (logoutResult.success) {
+          console.log(`\n✅ ${logoutResult.data}\n`)
+        } else {
+          console.error(`\n❌ Logout failed: ${logoutResult.error.message}\n`)
+        }
         continue
       }
       
@@ -182,4 +223,4 @@ async function main() {
 main().catch(error => {
   console.error('Fatal error:', error)
   process.exit(1)
-})
+});
