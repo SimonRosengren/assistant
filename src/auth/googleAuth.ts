@@ -6,7 +6,6 @@ import { Result } from '../types/index.js'
 
 const PORT = 3005;
 const SCOPES = ['https://www.googleapis.com/auth/calendar.events.readonly']
-const TOKEN_PATH = 'tokens.json' // This will be handled by authTokens.ts now
 
 // OAuth2Client will be initialized once and reused
 let oauth2Client: OAuth2Client | null = null
