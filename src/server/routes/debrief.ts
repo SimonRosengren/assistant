@@ -18,7 +18,6 @@ router.get('/debrief', async (req: Request, res: Response) => {
     const dateParam = req.query.date as string | undefined
     const date = dateParam ? new Date(dateParam) : new Date()
     
-    // Validate date
     if (isNaN(date.getTime())) {
       res.status(400).json({
         error: 'Invalid date parameter. Use ISO 8601 format (e.g., 2024-02-23)',

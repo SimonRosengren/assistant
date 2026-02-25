@@ -1,16 +1,9 @@
-/**
- * Express API Server for Daily Debrief
- * Provides REST endpoints for the Vue frontend
- */
-
 import express from 'express'
 import cors from 'cors'
 import debriefRoutes from './routes/debrief.js'
 import dotenv from 'dotenv'
 
-// Load environment variables
 dotenv.config()
-
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -18,16 +11,11 @@ const PORT = process.env.PORT || 3000
 // Middleware
 // ============================================================================
 
-// Enable CORS for local development
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
 }))
-
-// Parse JSON request bodies
 app.use(express.json())
-
-// Request logging
 app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`)
   next()
@@ -37,7 +25,6 @@ app.use((req, _res, next) => {
 // Routes
 // ============================================================================
 
-// Health check endpoint
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -45,19 +32,13 @@ app.get('/api/health', (_req, res) => {
     service: 'daily-debrief-api',
   })
 })
-
-// Debrief routes
 app.use('/api', debriefRoutes)
-
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
     message: `Cannot ${req.method} ${req.path}`,
   })
 })
-
-// Error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled error:', err)
   res.status(500).json({
@@ -74,7 +55,7 @@ app.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════════════════╗
 ║   Daily Debrief API Server                         ║
-║   Running on http://localhost:${PORT}               ║
+║   Running on http://localhost:${PORT}              ║
 ║                                                    ║
 ║   Endpoints:                                       ║
 ║   GET /api/health              Health check        ║

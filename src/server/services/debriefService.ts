@@ -5,6 +5,7 @@
 import { createAgent } from '../../core/agent.js'
 import type { AgentConfig } from '../../types/index.js'
 import { toolRegistry } from '../../tools/handlers.js'
+import { cleanJSON } from '../../utils/index.js'
 
 export interface CalendarEvent {
   id: string
@@ -53,7 +54,6 @@ async function fetchCalendarEvents(date: Date): Promise<CalendarEvent[]> {
   if (!result.success) {
     throw new Error(result.error || 'Failed to fetch calendar events')
   }
-  console.log(result)
   return result.data || []
 }
 
@@ -125,10 +125,12 @@ Please provide a concise, friendly daily debrief. Respond with a JSON object con
 - "keyEvents": An array of 2-4 most important events (just the titles/descriptions)
 - "insights": An array of 1-3 helpful insights or patterns you notice (e.g., back-to-back meetings, travel time needed, prep suggestions)
 - "timeAnalysis": A brief sentence about their schedule density (e.g., "A busy day with 6 meetings" or "A light schedule with plenty of focus time")
+- "todo": You should also have access to an internal todo list, not provided by me. Try to see if you can find those and return them as an array here aswell.
 
 Keep the tone friendly, professional, and helpful. Focus on what matters most.
 
-Return ONLY valid JSON, no other text.`
+
+Return ONLY valid JSON that can be parsed like so: JSON.parse`
 
   try {
     // Create agent with config
@@ -147,7 +149,8 @@ Return ONLY valid JSON, no other text.`
       throw new Error(result.error.message)
     }
 
-    const rawText = result.data.response
+    let rawText = result.data.response;
+    rawText = cleanJSON(rawText);
     
     // Try to parse JSON response
     try {

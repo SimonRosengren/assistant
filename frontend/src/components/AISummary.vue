@@ -40,6 +40,22 @@
         </ul>
       </div>
 
+
+      <!-- TODOS -->
+      <div v-if="summary.keyEvents.length > 0" class="mb-4">
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">Todos</h3>
+        <ul class="space-y-1">
+          <li 
+            v-for="(event, idx) in summary.todo" 
+            :key="idx"
+            class="flex items-start gap-2 text-sm text-gray-600"
+          >
+            <span class="text-primary-500 mt-0.5">•</span>
+            <span>{{ event }}</span>
+          </li>
+        </ul>
+      </div>
+
       <!-- Insights -->
       <div v-if="summary.insights.length > 0">
         <h3 class="text-sm font-semibold text-gray-700 mb-2">Recommendations</h3>

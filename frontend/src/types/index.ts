@@ -13,6 +13,7 @@ export interface DebriefSummary {
   keyEvents: string[]
   insights: string[]
   timeAnalysis: string
+  todo: { title: string, priority: 'high' | 'medium' | 'low', status: string }[]
 }
 
 export interface DailyDebrief {
