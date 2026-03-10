@@ -5,6 +5,7 @@ A personal assistant agent built with TypeScript and Anthropic Claude, featuring
 ## Features
 
 - **CLI Interface**: Interactive command-line assistant for task management and calendar access
+- **Slack Integration**: Chat with your assistant via Slack DMs (Socket Mode)
 - **Web Dashboard**: Beautiful daily debrief with AI-powered insights (Vue 3 + TailwindCSS)
 - **Google Calendar Integration**: Read and analyze your calendar events
 - **AI Summaries**: Claude generates intelligent insights about your day
@@ -36,7 +37,23 @@ GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
-### 3. Authenticate with Google Calendar
+### Slack Integration (Optional)
+
+To chat with your assistant via Slack:
+
+1. Create a Slack app at https://api.slack.com/
+2. Enable Socket Mode to get the App Token (starts with `xapp-`)
+3. Install the app to your workspace to get the Bot Token (starts with `xoxb-`)
+4. Get the Bot User ID from your app's App Home page
+5. Add to your `.env`:
+   ```
+   SLACK_BOT_TOKEN=xoxb-your-bot-token
+   SLACK_APP_TOKEN=xapp-your-app-token
+   SLACK_BOT_USER_ID=U0123456789
+   ```
+6. The Slack client starts automatically when the server runs
+
+### 4. Authenticate with Google Calendar
 
 ```bash
 npm start
@@ -45,7 +62,7 @@ npm start
 
 Follow the browser prompts to authenticate.
 
-### 4. Run the Web Dashboard
+### 5. Run the Web Dashboard
 
 **Terminal 1 - Backend API:**
 ```bash
@@ -60,7 +77,7 @@ npm run dev
 
 Visit `http://localhost:5173` to see your daily debrief!
 
-### 5. Use the CLI
+### 6. Use the CLI
 
 ```bash
 npm start
