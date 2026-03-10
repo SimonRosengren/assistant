@@ -1,6 +1,6 @@
 # Assistant
 
-A personal assistant agent built with TypeScript and Anthropic Claude, featuring both CLI and web interfaces.
+A personal assistant agent built with TypeScript and Anthropic Claude, featuring both CLI and web interfaces aswell as a Slack integration.
 
 ## Features
 
