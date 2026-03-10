@@ -1,9 +1,8 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import debriefRoutes from './routes/debrief.js'
-import dotenv from 'dotenv'
-
-dotenv.config()
+import { startSlackClient, stopSlackClient } from '../slack/client.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -51,7 +50,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 // Start Server
 // ============================================================================
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`
 ╔════════════════════════════════════════════════════╗
 ║   Daily Debrief API Server                         ║
@@ -63,15 +62,23 @@ app.listen(PORT, () => {
 ║   GET /api/debrief/events      Raw events          ║
 ╚════════════════════════════════════════════════════╝
   `)
+
+  try {
+    await startSlackClient()
+  } catch (error) {
+    console.error('Failed to start Slack client:', error)
+  }
 })
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM signal received: closing HTTP server')
+  await stopSlackClient()
   process.exit(0)
 })
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('SIGINT signal received: closing HTTP server')
+  await stopSlackClient()
   process.exit(0)
 })
